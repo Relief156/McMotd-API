@@ -20,11 +20,29 @@ class ServerInfo(private val actualAddress: String,
     private var maxPlayerCount : Int?
     /**服务器提供的部分在线玩家列表*/
     private var samplePlayerList : String?
+    
+    /**获取服务器描述*/
+    fun getDescription() = description
+    
+    /**获取服务器版本*/
+    fun getVersion() = version
+    
+    /**获取最大玩家数*/
+    fun getMaxPlayerCount() = maxPlayerCount
+    
+    /**获取玩家列表样本*/
+    fun getSamplePlayerList() = samplePlayerList
+    
+    /**获取延迟*/
+    fun getLatency() = latency
     /**本次查询用户所提供的原始服务器地址*/
     private lateinit var originalAddress : String
     /**服务器的显示地址*/
     private val serverAddress : String
         get() = if(configStorage.showTrueAddress) actualAddress else originalAddress
+    
+    /**获取服务器地址*/
+    fun getDisplayAddress() = serverAddress
 
     init {
         val json = JSON.parseObject(response)

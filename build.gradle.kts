@@ -6,6 +6,8 @@ plugins {
     kotlin("plugin.serialization") version kotlinVersion
 
     id("net.mamoe.mirai-console") version "2.16.0"
+    // 添加shadowJar插件，使用兼容旧版Gradle的版本
+    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 group = "org.zrnq"
@@ -37,4 +39,42 @@ dependencies {
 tasks.create("CopyToLib", Copy::class) {
     into("${buildDir}/output/libs")
     from(configurations.runtimeClasspath)
+}
+
+// 配置shadowJar任务来生成包含所有依赖的可执行jar文件
+tasks.shadowJar {
+    archiveClassifier.set("all")
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    
+    // 设置mainClassName，用于独立运行
+    manifest {
+        attributes(
+            "Main-Class" to "org.zrnq.mcmotd.StandaloneMainKt"
+        )
+    }
+}
+
+// 创建一个新任务，生成符合README要求的包含完整依赖的可执行jar文件
+tasks.create<Jar>("buildStandaloneJar") {
+    group = "build"
+    description = "Builds a standalone JAR with all dependencies for independent execution"
+    
+    // 设置输出文件名格式为 mcmotd-x.x.x.mirai.jar，符合README要求
+    archiveFileName.set("mcmotd-${version}.mirai.jar")
+    destinationDirectory.set(file("${buildDir}/mirai"))
+    
+    // 包含所有运行时依赖
+    from(sourceSets.main.get().output)
+    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
+    
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    
+    // 设置mainClassName，用于独立运行
+    manifest {
+        attributes(
+            "Main-Class" to "org.zrnq.mcmotd.StandaloneMainKt"
+        )
+    }
+    
+    dependsOn(tasks.shadowJar)
 }
